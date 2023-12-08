@@ -1,45 +1,51 @@
-import { useState,useEffect } from 'react'
+
 import axios from "axios"
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import {formik, useFormik} from "formik"
+import toast , { Toaster } from "react-hot-toast"
 import './App.css'
 
+
 function App() {
-  const [count, setCount] = useState(0)
+
   if(import.meta.env.MODE == "development"){
     axios.defaults.baseURL = `http://localhost:${import.meta.env.VITE_PORT}`
   }
-  console.log(import.meta.env);
-  useEffect(()=>{
-    axios.get("/get"
-    .then(res=>{
-      console.log(res);
-    }))
+
+  const formik =useFormik({
+    initialValues:{
+      username:"",
+      password:""
+    },
+    validate:validate,
+    validateOnBlur:false,
+    validateOnChange:false,
+    onSubmit:async(values)=>{
+      let res= axios.post("/api/register",values);
+      toast.promise(res,{
+        loading:"Registering...",
+        success:(data)=>{
+          console.log(data);
+          return data.data;
+        },
+        error:(error)=>{
+          console.log(error);
+          return(error.response.data);
+        }
+      })
+    }
   })
+  
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+   <div>
+    <Toaster position="top-center"/>
+
+    <form onSubmit={formik.handleSubmit}>
+      <input {...formik.getFieldProps("username")} type="text" name=" username" id=" username" placeholder=" username" />
+      <input {...formik.getFieldProps("password")}  type="password" name="password" id="password" placeholder="password" />
+      <input type="submit" value="register" />
+    </form>
+   </div>
   )
 }
 
